@@ -88,3 +88,9 @@ Add a stack by dropping a JSON file in `stacks/` with the same keys and adding i
 
 ## Example
 `examples/iams/project.md`: a filled-in project file for a multi-tenant .NET system (tenant isolation, per-tenant migrations, PII rules).
+
+## Credits
+Inspired by Ray Fu's [4-agent dev team guide](https://www.raycfu.com/guides/four-agent-dev-team); redesigned around tests-first, enforced guards, git gates and a bounded fix loop.
+
+## License
+MIT. See [LICENSE](LICENSE).
