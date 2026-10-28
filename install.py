@@ -22,7 +22,7 @@ import sys
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(KIT, "template")
 STACKS = os.path.join(KIT, "stacks")
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 DETECT_ORDER = ["dotnet", "node", "go", "rust", "python"]
 
 # Kit-owned files: replaced on --update
@@ -30,7 +30,8 @@ OWNED = [
     ".claude/agents/planner.md", ".claude/agents/test-writer.md",
     ".claude/agents/coder.md", ".claude/agents/reviewer.md",
     ".claude/commands/ship.md", ".claude/commands/spec.md", ".claude/commands/pipeline-setup.md",
-    ".claude/hooks/guard.py",
+    ".claude/commands/resolve.md",
+    ".claude/hooks/guard.py", ".claude/hooks/lanes.py",
     "scripts/ship-overnight.sh", "scripts/test-guards.sh",
 ]
 # Project-owned files: written once, never overwritten
@@ -44,7 +45,7 @@ BASE_ALLOW = [
     "Bash(mv .pipeline/*)",
     "Bash(mkdir *)", "Bash(ls *)", "Bash(cat *)", "Bash(head *)", "Bash(tail *)",
     "Bash(wc *)", "Bash(grep *)", "Bash(rg *)", "Bash(find *)", "Bash(sort *)",
-    "Bash(true)",
+    "Bash(true)", "Bash(python3 .claude/hooks/lanes.py *)",
 ]
 BASE_DENY = [
     "Bash(git push)", "Bash(git push *)", "Bash(git merge *)", "Bash(git rebase *)",

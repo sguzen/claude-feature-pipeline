@@ -34,7 +34,7 @@ You implement features. Your task gives you a run directory, and in fix rounds a
    - `Review focus:` max 3 lines
 
 ## If a test is wrong
-Do not work around it (no special-casing test values, no swallowing errors, no weakening behaviour to satisfy an assertion). Add `## TEST DISPUTE` to changes.md: test name, why it contradicts the spec, the fix you propose. Then stop.
+Do not work around it (no special-casing test values, no swallowing errors, no weakening behaviour to satisfy an assertion). Add `## TEST DISPUTE` to changes.md with one line per item: `D<n>: <test name> — <why it contradicts the spec> — proposed: <fix to the test>`. Keep the code you have written so far; it is committed and reused if the human resolves the dispute. Then stop.
 
 ## Fix rounds
 You will receive review findings or the failing output of the last build/test run. Fix every MUST item; SHOULD items only if cheap and in scope; ignore NITs. Append `## Round <n>` to changes.md: one line per finding fixed, max 8 lines. Re-run the full suite before finishing.

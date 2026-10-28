@@ -32,8 +32,8 @@ Update a project to a newer kit: `install.py /path/to/project --update`. Agents,
 | Path | Owner | Purpose |
 |---|---|---|
 | `.claude/agents/{planner,test-writer,coder,reviewer}.md` | kit | Generic agents; read `project.md` for project rules |
-| `.claude/commands/{spec,ship,pipeline-setup}.md` | kit | Interactive planning, orchestrator, setup |
-| `.claude/hooks/guard.py` | kit | Per-role PreToolUse guard (paths, git, shell writes, bans) |
+| `.claude/commands/{spec,ship,resolve,pipeline-setup}.md` | kit | Planning, orchestrator, dispute resolution, setup |
+| `.claude/hooks/guard.py`, `lanes.py` | kit | Per-role PreToolUse guard; commit-lane tamper check |
 | `scripts/ship-overnight.sh`, `scripts/test-guards.sh` | kit | Headless runner with sleep inhibit + notify; guard tests |
 | `.claude/pipeline.json` | project | build/test commands, test path patterns, banned commands, fix rounds |
 | `.claude/pipeline/project.md` | project | Architecture, migrations, required spec sections, test rules, review checklist |
@@ -62,8 +62,9 @@ Morning: `.pipeline/<slug>/SUMMARY.md` → `review-r*.md` → the diff. Every ru
 | ON_FEATURE_BRANCH | Started from a `feat/` branch | Switch to your main branch |
 | AGENT_FAILED | An agent wrote nothing, no tests, or no code changes | Read its output in the log |
 | AGENT_MISSING | Project agents not loaded | Check `.claude/agents/`, restart `claude` |
-| SPEC_PROBLEM / TEST_DISPUTE | Tests and spec disagree | Fix the spec, rerun |
-| TEST_TAMPER / SCOPE_VIOLATION | An agent wrote outside its lane | Inspect; tighten patterns |
+| TEST_DISPUTE | Coder says some tests contradict the spec | `/resolve <slug>` (decide per test), then `/ship <slug>` resumes on the same branch |
+| SPEC_PROBLEM | Test-writer found the spec contradictory | Fix the spec, rerun `/ship <slug>` (fresh branch) |
+| TEST_TAMPER / SCOPE_VIOLATION | Test files changed outside a `test(<slug>)` commit, or code in one | Inspect; tighten patterns |
 | RED_EXHAUSTED / NEEDS_WORK_EXHAUSTED | Red retries / review rounds used up | Take over or split the feature |
 | BLOCK | Needs a human decision | Read the review |
 
@@ -90,6 +91,7 @@ Agents report back in one status line; files have length budgets. You read three
 - The reviewer may run only these exact commands (plus a suffix such as a filter) and read-only tools. Extra reviewer commands go in `reviewer_extra_commands`.
 
 ## Known limits
+- Tamper protection is a commit-lane rule checked by `.claude/hooks/lanes.py` (orchestrator after every coder run, reviewer again): `test(<slug>)` commits touch only test files, every other commit touches none.
 - Guards are pattern-matching backstops, not a sandbox. They fail closed: a crash or a broken `pipeline.json` blocks the call rather than allowing it. The real enforcement is the orchestrator's git-diff gates and the reviewer re-running the suite.
 - Test protection is path-based. Test files the patterns don't match are unprotected; `scripts/test-guards.sh` shows what matches.
 - Tests-first means the planner's interfaces must be right; bad ones surface early as `SPEC_PROBLEM`, which is the cheap place to fail.

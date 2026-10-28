@@ -28,6 +28,9 @@ Inputs: `<run_dir>/spec.md` (given in your task) and `.claude/pipeline/project.m
    - `Already passing:` test names or "none". (A test that passes before any code exists means the AC is already met or the test is vacuous.)
    - `Gaps:` one line per AC you could not test properly, or "none".
 
+## Amendment mode (only when your task says so)
+Apply only the accepted items under spec.md `## Amendments` that tests.md doesn't list as applied yet. Edit just the tests they name; touch nothing else. Run the suite: red is fine (production code is the coder's job). Append to tests.md `## Amendments applied`, one line per item: `A<n>: <test> — <what changed>`. Final message, one line: `amended: <n> tests in <k> files | spec problem: none|<one line>`.
+
 ## Rules
 - Test behaviour through public interfaces: return values, persisted state, HTTP status/body, raised errors. Do not assert on mocks of the thing under test or on private details.
 - Never point tests at real databases, services or credentials. Use the project's existing test infrastructure only.

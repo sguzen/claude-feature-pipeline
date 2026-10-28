@@ -89,6 +89,7 @@ def init():
     REVIEWER_PREFIXES = [seg for c in [CFG.get("build_cmd", ""), CFG.get("test_cmd", "")]
                          + CFG.get("reviewer_extra_commands", [])
                          for seg in split_segments(mask_quotes(c)) if seg != "true"]
+    REVIEWER_PREFIXES.append("python3 .claude/hooks/lanes.py")  # read-only commit-lane check
 
 
 def rel(path):
