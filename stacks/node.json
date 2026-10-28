@@ -1,21 +1,45 @@
 {
   "name": "node",
-  "detect": ["package.json"],
+  "detect": [
+    "package.json"
+  ],
   "build_cmd": "{pm_run} build",
   "test_cmd": "{pm_run} test",
-  "test_path_patterns": ["(^|/)(__tests__|tests?|e2e)/", "\\.(test|spec)\\.[cm]?[jt]sx?$"],
+  "test_path_patterns": [
+    "(^|/)(__tests__|tests?|e2e)/",
+    "\\.(test|spec)\\.[cm]?[jt]sx?$"
+  ],
   "banned_commands": [
-    {"pattern": "\\b(npm|pnpm|yarn|bun)\\s+publish\\b", "reason": "never publish"},
-    {"pattern": "\\bprisma\\s+(migrate\\s+(deploy|reset)|db\\s+push)\\b", "reason": "never apply migrations to a database"},
-    {"pattern": "\\b(drizzle-kit\\s+(push|migrate)|knex\\s+migrate:latest|sequelize\\s+db:migrate)\\b", "reason": "never apply migrations to a database"}
+    {
+      "pattern": "\\b(npm|pnpm|yarn|bun)\\s+publish\\b",
+      "reason": "never publish"
+    },
+    {
+      "pattern": "\\bprisma\\s+(migrate\\s+(deploy|reset)|db\\s+push)\\b",
+      "reason": "never apply migrations to a database"
+    },
+    {
+      "pattern": "\\b(drizzle-kit\\s+(push|migrate)|knex\\s+migrate:latest|sequelize\\s+db:migrate)\\b",
+      "reason": "never apply migrations to a database"
+    }
   ],
   "allow": [
-    "Bash({pm} run *)", "Bash({pm} test)", "Bash({pm} test *)", "Bash({pm} install)",
-    "Bash(npx tsc *)", "Bash(npx prisma migrate dev --create-only *)", "Bash(npx prisma generate)"
+    "Bash({pm} run *)",
+    "Bash({pm} test)",
+    "Bash({pm} test *)",
+    "Bash({pm} install)",
+    "Bash(npx tsc *)",
+    "Bash(npx prisma migrate dev --create-only *)",
+    "Bash(npx prisma generate)",
+    "Bash({pm} add *)"
   ],
   "deny": [
-    "Bash({pm} publish *)", "Bash(npx prisma migrate deploy *)", "Bash(npx prisma db push *)"
+    "Bash({pm} publish *)",
+    "Bash(npx prisma migrate deploy *)",
+    "Bash(npx prisma db push *)"
   ],
-  "env": {"CI": "true"},
+  "env": {
+    "CI": "true"
+  },
   "migration_hint": "Generate migration files only (e.g. `prisma migrate dev --create-only`). Never apply them."
 }

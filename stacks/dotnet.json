@@ -1,21 +1,47 @@
 {
   "name": "dotnet",
-  "detect": ["*.sln", "*.slnx", "*.csproj", "*.fsproj"],
+  "detect": [
+    "*.sln",
+    "*.slnx",
+    "*.csproj",
+    "*.fsproj"
+  ],
   "build_cmd": "dotnet build {solution}--nologo -clp:ErrorsOnly",
   "test_cmd": "dotnet test {solution}--nologo --no-build",
-  "test_path_patterns": ["(^|/)tests?/", "\\.Tests?/", "\\.(Unit|Integration|Functional|E2E)Tests/"],
+  "test_path_patterns": [
+    "(^|/)tests?/",
+    "\\.Tests?/",
+    "\\.(Unit|Integration|Functional|E2E)Tests/"
+  ],
   "banned_commands": [
-    {"pattern": "\\bdotnet\\s+ef\\s+database\\b", "reason": "never apply migrations to a database"},
-    {"pattern": "\\bdotnet\\s+(run|publish|nuget\\s+push)\\b", "reason": "not needed for a feature branch"}
+    {
+      "pattern": "\\bdotnet\\s+ef\\s+database\\b",
+      "reason": "never apply migrations to a database"
+    },
+    {
+      "pattern": "\\bdotnet\\s+(run|publish|nuget\\s+push)\\b",
+      "reason": "not needed for a feature branch"
+    }
   ],
   "allow": [
-    "Bash(dotnet build)", "Bash(dotnet build *)", "Bash(dotnet test)", "Bash(dotnet test *)",
-    "Bash(dotnet restore)", "Bash(dotnet restore *)", "Bash(dotnet list *)",
-    "Bash(dotnet ef migrations add *)", "Bash(dotnet ef migrations list *)"
+    "Bash(dotnet build)",
+    "Bash(dotnet build *)",
+    "Bash(dotnet test)",
+    "Bash(dotnet test *)",
+    "Bash(dotnet restore)",
+    "Bash(dotnet restore *)",
+    "Bash(dotnet list *)",
+    "Bash(dotnet ef migrations add *)",
+    "Bash(dotnet ef migrations list *)",
+    "Bash(dotnet add *)"
   ],
   "deny": [
-    "Bash(dotnet ef database *)", "Bash(dotnet run *)", "Bash(dotnet publish *)", "Bash(dotnet nuget push *)",
-    "Read(./**/appsettings.Production.json)", "Read(./**/appsettings.Staging.json)"
+    "Bash(dotnet ef database *)",
+    "Bash(dotnet run *)",
+    "Bash(dotnet publish *)",
+    "Bash(dotnet nuget push *)",
+    "Read(./**/appsettings.Production.json)",
+    "Read(./**/appsettings.Staging.json)"
   ],
   "env": {},
   "migration_hint": "dotnet ef migrations add <Name> (with the repo's usual -p/-s flags). Never `dotnet ef database update`."

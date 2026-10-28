@@ -21,9 +21,12 @@ EOF
 pass=0; fail=0
 t() { # role expect tool input-json
   local role=$1 expect=$2 tool=$3 input=$4
-  printf '{"tool_name":"%s","tool_input":%s}' "$tool" "$input" \
-    | CLAUDE_PROJECT_DIR="$SANDBOX" python3 "$G" "$role" >/dev/null 2>&1
-  local rc=$?; local got=allow; [ $rc -eq 2 ] && got=block
+  local err
+  err="$(printf '{"tool_name":"%s","tool_input":%s}' "$tool" "$input" \
+    | CLAUDE_PROJECT_DIR="${SB_DIR:-$SANDBOX}" python3 "$G" "$role" 2>&1 >/dev/null)"
+  local rc=$? got
+  # Claude Code only blocks on exit 2; any other non-zero code means the guard crashed and the call goes through
+  case $rc in 0) got=allow ;; 2) got=block ;; *) got="CRASH(rc=$rc): $err" ;; esac
   if [ "$got" = "$expect" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL [$role] $tool $input -> $got (want $expect)"; fi
 }
 
@@ -67,6 +70,42 @@ t reviewer block Bash '{"command":"find . -name \"*.py\" -delete"}'
 t reviewer block Bash '{"command":"cat $(echo src/a.py)"}'
 t reviewer block Write '{"file_path":"src/a.py"}'
 
+# --- regressions: git global flags ---
+t coder    block Bash '{"command":"git -C . checkout -- tests/"}'
+t coder    block Bash '{"command":"git --git-dir=.git reset --hard"}'
+t coder    block Bash '{"command":"git -c core.pager=cat commit -am x"}'
+t reviewer allow Bash '{"command":"git --no-pager diff abc123..HEAD"}'
+t reviewer allow Bash '{"command":"git -C . log --oneline -5"}'
+# --- regressions: operators inside quotes / lambdas are not redirects or mutators ---
+t coder    allow Bash '{"command":"rg \"x => x.TenantId\" src/"}'
+t reviewer allow Bash '{"command":"rg \"count >= 0\" src/"}'
+t coder    allow Bash '{"command":"make test --filter \"Priority>1\""}'
+t coder    allow Bash '{"command":"rg -n \"foo rm bar\" src/"}'
+t coder    allow Bash '{"command":"grep -rn \"a|b\" src/"}'
+t coder    block Bash '{"command":"echo \"x\" > src/app/hack.py"}'
+# --- regressions: inline interpreters, find -delete, substitution, xargs ---
+t coder       block Bash '{"command":"python3 -c \"open(1)\""}'
+t coder       block Bash '{"command":"node -e \"require(1)\""}'
+t test-writer block Bash '{"command":"bash -c \"rm src/a.py\""}'
+t coder       block Bash '{"command":"find src -name \"*.bak\" -delete"}'
+t coder       block Bash '{"command":"ls src | xargs rm"}'
+t coder       block Bash '{"command":"make test $(rm -f x)"}'
+t coder       allow Bash '{"command":"uv run python -m pytest -q"}'
+# --- regressions: planner shell is read-only if it ever gets Bash ---
+t planner block Bash '{"command":"rm -f src/app/orders.py"}'
+t planner block Bash '{"command":"echo hacked > src/app/orders.py"}'
+t planner allow Bash '{"command":"git log --oneline -5"}'
+# --- regressions: fail closed ---
+t not-a-role block Bash '{"command":"ls"}'
+
+BROKEN="$(mktemp -d)"; mkdir -p "$BROKEN/.claude"; echo '{"test_path_patterns": ["(unclosed"]}' > "$BROKEN/.claude/pipeline.json"
+SB_DIR="$BROKEN" t coder block Write '{"file_path":"src/a.py"}'
+echo '{ not json' > "$BROKEN/.claude/pipeline.json"
+SB_DIR="$BROKEN" t reviewer block Bash '{"command":"ls"}'
+rm -rf "$BROKEN"
+printf 'garbage' | CLAUDE_PROJECT_DIR="$SANDBOX" python3 "$G" coder >/dev/null 2>&1
+if [ $? -eq 2 ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL garbage stdin did not fail closed"; fi
+
 echo "guard logic: $pass passed, $fail failed"
 
 # --- this repo's real patterns ---
@@ -74,18 +113,37 @@ CFG="$ROOT/.claude/pipeline.json"
 if [ -f "$CFG" ] && git -C "$ROOT" rev-parse >/dev/null 2>&1; then
   git -C "$ROOT" ls-files | python3 -c '
 import json, re, sys
-cfg = json.load(open(sys.argv[1]))
-rx = [re.compile(p) for p in cfg.get("test_path_patterns", [])]
+try:
+    cfg = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception as e:
+    print(f"CONFIG ERROR: .claude/pipeline.json is not valid JSON: {e}"); sys.exit(1)
+bad = False
+for key in ("build_cmd", "test_cmd"):
+    v = str(cfg.get(key, ""))
+    if not v or v.startswith("TODO"):
+        print(f"CONFIG: {key} is not set ({v!r})"); bad = True
+def valid(p):
+    global bad
+    try:
+        return re.compile(p)
+    except re.error as e:
+        print(f"CONFIG ERROR: invalid regex {p!r}: {e}"); bad = True
+for b in cfg.get("banned_commands", []):
+    valid(b.get("pattern", ""))
+rx = [r for r in (valid(p) for p in cfg.get("test_path_patterns", [])) if r]
 files = [l.strip() for l in sys.stdin if l.strip()]
 hits = [f for f in files if any(r.search(f) for r in rx)]
 print(f"this repo: {len(hits)} of {len(files)} tracked files count as tests")
+if files and not hits:
+    print("   WARNING: no tracked file matches test_path_patterns; the test-writer will be blocked and tests are unprotected")
 for f in hits[:8]: print("   test:", f)
 sus = [f for f in files if f not in hits and not f.startswith((".claude/", "scripts/", ".pipeline/"))
        and re.search(r"(?i)(test|spec)", f)]
 if sus:
     print(f"   check these {len(sus)} non-matching files with test-like names:")
     for f in sus[:8]: print("   ?", f)
-' "$CFG"
+sys.exit(1 if bad else 0)
+' "$CFG" || fail=$((fail+1))
 fi
 
 [ $fail -eq 0 ]

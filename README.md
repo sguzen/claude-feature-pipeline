@@ -47,7 +47,9 @@ claude
 #   answer open questions, approve
 scripts/ship-overnight.sh 20261028-csv-export-renewals    # NTFY_TOPIC=xyz for a phone ping
 ```
-Morning: `.pipeline/<slug>/SUMMARY.md` → `review-r*.md` → the diff.
+Morning: `.pipeline/<slug>/SUMMARY.md` → `review-r*.md` → the diff. Every run ends by switching back to the branch you started from; the work is on `feat/<slug>` (or `feat/<slug>-2` for a rerun; earlier attempts' branches are kept).
+
+`ship-overnight.sh` refuses to start if the folder isn't trusted (the guards wouldn't run), caps the run at `WALL_TIMEOUT` (default `6h`), runs with no stdin so nothing can wait for input, and only reports a `SUMMARY.md` written by this run.
 
 ## Stop statuses
 
@@ -57,10 +59,12 @@ Morning: `.pipeline/<slug>/SUMMARY.md` → `review-r*.md` → the diff.
 | NOT_CONFIGURED | TODOs left in pipeline.json / project.md | `/pipeline-setup` |
 | NEEDS_INPUT | Spec has open questions | `/spec` |
 | DIRTY_TREE / BASELINE_RED | Uncommitted changes / main already failing | Commit / fix main |
+| ON_FEATURE_BRANCH | Started from a `feat/` branch | Switch to your main branch |
+| AGENT_FAILED | An agent wrote nothing, no tests, or no code changes | Read its output in the log |
 | AGENT_MISSING | Project agents not loaded | Check `.claude/agents/`, restart `claude` |
 | SPEC_PROBLEM / TEST_DISPUTE | Tests and spec disagree | Fix the spec, rerun |
 | TEST_TAMPER / SCOPE_VIOLATION | An agent wrote outside its lane | Inspect; tighten patterns |
-| RED_EXHAUSTED / NEEDS_WORK_EXHAUSTED | Fix rounds used up | Take over or split the feature |
+| RED_EXHAUSTED / NEEDS_WORK_EXHAUSTED | Red retries / review rounds used up | Take over or split the feature |
 | BLOCK | Needs a human decision | Read the review |
 
 ## Stack presets (`stacks/*.json`)
@@ -75,12 +79,15 @@ Morning: `.pipeline/<slug>/SUMMARY.md` → `review-r*.md` → the diff.
 
 Add a stack by dropping a JSON file in `stacks/` with the same keys and adding it to `DETECT_ORDER` in `install.py`.
 
+## Budgets
+`max_red_retries` (default 2): coder re-runs because the suite was red, one budget for the whole run. `max_fix_rounds` (default 2): review → fix cycles. Worst case the coder runs 1 + 2 + 2 = 5 times.
+
 ## Rules for build_cmd / test_cmd
 - Non-interactive, exits on its own (no watch mode).
 - The reviewer may run only these exact commands (plus a suffix such as a filter) and read-only tools. Extra reviewer commands go in `reviewer_extra_commands`.
 
 ## Known limits
-- Guards are pattern-matching backstops, not a sandbox. The real enforcement is the orchestrator's git-diff gates and the reviewer re-running the suite.
+- Guards are pattern-matching backstops, not a sandbox. They fail closed: a crash or a broken `pipeline.json` blocks the call rather than allowing it. The real enforcement is the orchestrator's git-diff gates and the reviewer re-running the suite.
 - Test protection is path-based. Test files the patterns don't match are unprotected; `scripts/test-guards.sh` shows what matches.
 - Tests-first means the planner's interfaces must be right; bad ones surface early as `SPEC_PROBLEM`, which is the cheap place to fail.
 - Don't add `memory:` to the reviewer: it auto-grants Write/Edit.

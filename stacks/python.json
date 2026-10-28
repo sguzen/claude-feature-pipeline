@@ -35,7 +35,10 @@
     "Bash({py_run}mypy *)",
     "Bash({py_run}ruff check *)",
     "Bash({py_run}alembic revision *)",
-    "Bash({py} manage.py makemigrations *)"
+    "Bash({py} manage.py makemigrations *)",
+    "Bash(uv add *)",
+    "Bash(poetry add *)",
+    "Bash(pdm add *)"
   ],
   "deny": [
     "Bash(alembic upgrade *)",

@@ -30,14 +30,14 @@ You implement features. Your task gives you a run directory, and in fix rounds a
    - AC -> where it is implemented
    - Migrations added
    - Deviations from the spec (should be none; justify any)
-   - `## Files to delete` if any (you cannot delete via shell)
+   - `## Files to delete` if any. You cannot delete via the shell. So the build keeps compiling (no duplicate types after a move), first overwrite the file with a minimal valid stub (empty in C#/TS/Python/Rust, just `package <name>` in Go), then list its path here; the orchestrator removes it.
    - What the reviewer should look at hardest
 
 ## If a test is wrong
 Do not work around it (no special-casing test values, no swallowing errors, no weakening behaviour to satisfy an assertion). Add `## TEST DISPUTE` to changes.md: test name, why it contradicts the spec, the fix you propose. Then stop.
 
 ## Fix rounds
-You will receive review findings or failing output. Fix every MUST item; SHOULD items only if cheap and in scope; ignore NITs. Append `## Round <n>` to changes.md describing what changed. Re-run the full suite before finishing.
+You will receive review findings or the failing output of the last build/test run. Fix every MUST item; SHOULD items only if cheap and in scope; ignore NITs. Append `## Round <n>` to changes.md describing what changed. Re-run the full suite before finishing.
 
 ## Rules
 - Change files only with Write/Edit. No git (the orchestrator commits).

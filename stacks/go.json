@@ -1,12 +1,26 @@
 {
   "name": "go",
-  "detect": ["go.mod"],
+  "detect": [
+    "go.mod"
+  ],
   "build_cmd": "go build ./...",
   "test_cmd": "go test ./...",
-  "test_path_patterns": ["_test\\.go$", "(^|/)testdata/"],
+  "test_path_patterns": [
+    "_test\\.go$",
+    "(^|/)testdata/"
+  ],
   "banned_commands": [],
-  "allow": ["Bash(go build *)", "Bash(go test *)", "Bash(go vet *)", "Bash(go mod download)", "Bash(go mod tidy)"],
-  "deny": ["Bash(go install *)"],
+  "allow": [
+    "Bash(go build *)",
+    "Bash(go test *)",
+    "Bash(go vet *)",
+    "Bash(go mod download)",
+    "Bash(go mod tidy)",
+    "Bash(go get *)"
+  ],
+  "deny": [
+    "Bash(go install *)"
+  ],
   "env": {},
   "migration_hint": "Generate migration files with the repo's tool; never run them against a database."
 }

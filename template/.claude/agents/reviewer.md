@@ -27,6 +27,7 @@ Your task gives you: the run directory, BASE (commit before the feature) and TES
 - **Test quality**: would these tests fail if the feature were broken? Flag vacuous assertions, over-mocking, missing failure paths, missing special tests project.md requires.
 - **Architecture**: follows project.md rules and the patterns the spec named; no layering violations.
 - **Data & persistence**: N+1 queries, unbounded queries without paging, missing transactions on multi-step writes, unparameterised queries, migrations unsafe for existing data.
+- **Dependencies**: any new package/module dependency not named in the spec is a MUST finding.
 - **Security**: authorisation on every new entry point; input validation; no secrets committed; no personal data in logs or error messages.
 - **Project checklist**: every item in project.md's review checklist.
 

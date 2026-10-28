@@ -22,7 +22,7 @@ import sys
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(KIT, "template")
 STACKS = os.path.join(KIT, "stacks")
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 DETECT_ORDER = ["dotnet", "node", "go", "rust", "python"]
 
 # Kit-owned files: replaced on --update
@@ -40,7 +40,8 @@ BASE_ALLOW = [
     "Bash(git status)", "Bash(git status *)", "Bash(git diff)", "Bash(git diff *)",
     "Bash(git log *)", "Bash(git show *)", "Bash(git rev-parse *)", "Bash(git merge-base *)",
     "Bash(git ls-files *)", "Bash(git ls-files)", "Bash(git blame *)",
-    "Bash(git add *)", "Bash(git commit *)", "Bash(git switch -c *)", "Bash(git rm *)",
+    "Bash(git add *)", "Bash(git commit *)", "Bash(git switch *)", "Bash(git rm *)",
+    "Bash(mv .pipeline/*)",
     "Bash(mkdir *)", "Bash(ls *)", "Bash(cat *)", "Bash(head *)", "Bash(tail *)",
     "Bash(wc *)", "Bash(grep *)", "Bash(rg *)", "Bash(find *)", "Bash(sort *)",
     "Bash(true)",
@@ -63,7 +64,7 @@ def warn(msg):
 
 
 def load_stack(name):
-    with open(os.path.join(STACKS, f"{name}.json")) as f:
+    with open(os.path.join(STACKS, f"{name}.json"), encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -105,7 +106,7 @@ def node_vars(target, stack):
         pm = "npm"
     pm_run = f"{pm} run"
     try:
-        scripts = json.load(open(os.path.join(target, "package.json"))).get("scripts", {})
+        scripts = json.load(open(os.path.join(target, "package.json"), encoding="utf-8")).get("scripts", {})
     except Exception:
         scripts = {}
     v = {"pm": pm, "pm_run": pm_run}
@@ -175,7 +176,7 @@ def write(path, content, dry):
     if dry:
         return
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(content)
 
 
@@ -207,11 +208,12 @@ def write_pipeline_json(target, stack, dry):
         "banned_commands": stack["banned_commands"],
         "reviewer_extra_commands": [],
         "max_fix_rounds": 2,
+        "max_red_retries": 2,
         "branch_prefix": "feat/",
     }
     if os.path.exists(path):
         try:
-            cur = json.load(open(path))
+            cur = json.load(open(path, encoding="utf-8"))
         except Exception as e:
             sys.exit(f"ERROR: {path} is not valid JSON ({e}). Fix it and rerun.")
         missing = {k: v for k, v in cfg.items() if k not in cur}
@@ -230,7 +232,7 @@ def write_project_md(target, stack, dry):
     if os.path.exists(path):
         actions.append("keep    .claude/pipeline/project.md")
         return
-    tpl = open(os.path.join(TEMPLATE, ".claude", "pipeline", "project.md")).read()
+    tpl = open(os.path.join(TEMPLATE, ".claude", "pipeline", "project.md"), encoding="utf-8").read()
     tpl = tpl.replace("## Data & migrations\n",
                       f"## Data & migrations\n<!-- Stack default: {stack['migration_hint']} -->\n")
     write(path, tpl, dry)
@@ -241,7 +243,7 @@ def merge_settings(target, stack, dry):
     data = {}
     if os.path.exists(path):
         try:
-            data = json.load(open(path))
+            data = json.load(open(path, encoding="utf-8"))
         except Exception as e:
             sys.exit(f"ERROR: {path} is not valid JSON ({e}). Fix it and rerun.")
     before = json.dumps(data, sort_keys=True)
@@ -262,12 +264,12 @@ def merge_settings(target, stack, dry):
 
 def gitignore(target, dry):
     path = os.path.join(target, ".gitignore")
-    lines = open(path).read().splitlines() if os.path.exists(path) else []
+    lines = open(path, encoding="utf-8", errors="replace").read().splitlines() if os.path.exists(path) else []
     if any(l.strip() in (".pipeline", ".pipeline/", "/.pipeline/", "/.pipeline") for l in lines):
         return
     actions.append("append  .gitignore (.pipeline/)")
     if not dry:
-        with open(path, "a") as f:
+        with open(path, "a", encoding="utf-8") as f:
             if lines and lines[-1].strip():
                 f.write("\n")
             f.write(".pipeline/\n")
