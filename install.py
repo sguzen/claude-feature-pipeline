@@ -6,8 +6,8 @@
 Fresh install : copies agents/commands/hooks/scripts, writes .claude/pipeline.json and
                 .claude/pipeline/project.md, merges .claude/settings.json, ignores .pipeline/.
 --update      : overwrites kit-owned files (agents, commands, hook, scripts) with this kit's
-                version. pipeline.json only gains missing keys; project.md and your settings
-                values are never changed.
+                version. pipeline.json gains missing keys and any new preset bans for its
+                stack; project.md and your settings values are never changed.
 --force       : on a fresh install, overwrite existing kit files that differ.
 """
 import argparse
@@ -22,7 +22,7 @@ import sys
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(KIT, "template")
 STACKS = os.path.join(KIT, "stacks")
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 DETECT_ORDER = ["dotnet", "node", "go", "rust", "python"]
 
 # Kit-owned files: replaced on --update
@@ -217,12 +217,21 @@ def write_pipeline_json(target, stack, dry):
         except Exception as e:
             sys.exit(f"ERROR: {path} is not valid JSON ({e}). Fix it and rerun.")
         missing = {k: v for k, v in cfg.items() if k not in cur}
-        if not missing:
+        cur.update(missing)  # add new keys only; your values stay
+        # Safety bans are additive, like settings deny rules: new preset bans reach existing
+        # projects of the same stack. Your own bans and edits are kept.
+        new_bans = []
+        if cur.get("stack") == stack["name"] and "banned_commands" not in missing:
+            have = {b.get("pattern") for b in cur.get("banned_commands", [])}
+            new_bans = [b for b in stack["banned_commands"] if b["pattern"] not in have]
+            cur.setdefault("banned_commands", []).extend(new_bans)
+        if not missing and not new_bans:
             actions.append("keep    .claude/pipeline.json")
             return
-        cur.update(missing)  # add new keys only; your values stay
         write(path, json.dumps(cur, indent=2) + "\n", dry)
-        actions[-1] = f"upgrade .claude/pipeline.json (added: {', '.join(missing)})"
+        parts = ([f"added keys: {', '.join(missing)}"] if missing else []) + \
+                ([f"new bans: {len(new_bans)}"] if new_bans else [])
+        actions[-1] = f"upgrade .claude/pipeline.json ({'; '.join(parts)})"
         return
     write(path, json.dumps(cfg, indent=2) + "\n", dry)
 

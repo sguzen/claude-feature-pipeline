@@ -25,7 +25,7 @@ Then, in the project:
 3. `bash scripts/test-guards.sh`: guard logic must pass; it also lists what your patterns count as tests.
 4. Commit: `git add .claude scripts .gitignore && git commit -m "chore: add feature pipeline"`. `/ship` won't start on a dirty tree.
 
-Update a project to a newer kit: `install.py /path/to/project --update`. Agents, commands, hook and scripts are replaced. `pipeline.json` only gains missing keys. `project.md` and your settings values are never changed.
+Update a project to a newer kit: `install.py /path/to/project --update`. Agents, commands, hook and scripts are replaced. `pipeline.json` gains missing keys and any new safety bans for its stack (your own bans and values stay). `project.md` and your settings values are never changed.
 
 ## What gets installed
 
@@ -71,7 +71,7 @@ Morning: `.pipeline/<slug>/SUMMARY.md` → `review-r*.md` → the diff. Every ru
 
 | Stack | Build / test | Notes |
 |---|---|---|
-| dotnet | `dotnet build <sln>` / `dotnet test <sln> --no-build` | Bans `dotnet ef database`, `run`, `publish` |
+| dotnet | `dotnet build <sln>` / `dotnet test <sln> --no-build` | Bans `dotnet ef database`, `migrations remove`, `run`, `publish`, `sqlcmd`/`bcp`/`osql` |
 | node | `<pm> run build` (or `tsc --noEmit`) / `<pm> run test` | Detects npm/pnpm/yarn/bun; sets `CI=true` so vitest/jest don't watch |
 | python | `true` / `uv\|poetry\|pdm run pytest -q` | Set build_cmd to your type checker if you have one |
 | go | `go build ./...` / `go test ./...` | `_test.go` files are protected |

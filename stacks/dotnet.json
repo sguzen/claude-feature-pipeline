@@ -19,8 +19,16 @@
       "reason": "never apply migrations to a database"
     },
     {
+      "pattern": "\\bdotnet\\s+ef\\s+migrations\\s+remove\\b",
+      "reason": "can revert a migration already applied to a database; leave it to the human"
+    },
+    {
       "pattern": "\\bdotnet\\s+(run|publish|nuget\\s+push)\\b",
       "reason": "not needed for a feature branch"
+    },
+    {
+      "pattern": "\\b(sqlcmd|bcp|osql)\\b",
+      "reason": "no direct database access"
     }
   ],
   "allow": [
@@ -41,7 +49,11 @@
     "Bash(dotnet publish *)",
     "Bash(dotnet nuget push *)",
     "Read(./**/appsettings.Production.json)",
-    "Read(./**/appsettings.Staging.json)"
+    "Read(./**/appsettings.Staging.json)",
+    "Bash(dotnet ef migrations remove *)",
+    "Bash(sqlcmd *)",
+    "Bash(bcp *)",
+    "Bash(osql *)"
   ],
   "env": {},
   "migration_hint": "dotnet ef migrations add <Name> (with the repo's usual -p/-s flags). Never `dotnet ef database update`."
