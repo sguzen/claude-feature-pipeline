@@ -1,0 +1,13 @@
+{
+  "name": "rust",
+  "detect": ["Cargo.toml"],
+  "build_cmd": "cargo build --quiet",
+  "test_cmd": "cargo test --quiet",
+  "test_path_patterns": ["(^|/)tests/", "(^|/)benches/"],
+  "banned_commands": [{"pattern": "\\bcargo\\s+publish\\b", "reason": "never publish"}],
+  "allow": ["Bash(cargo build *)", "Bash(cargo build)", "Bash(cargo test *)", "Bash(cargo test)", "Bash(cargo check *)", "Bash(cargo clippy *)"],
+  "deny": ["Bash(cargo publish *)", "Bash(cargo install *)"],
+  "env": {},
+  "migration_hint": "Generate migration files with the repo's tool; never run them against a database.",
+  "warning": "Inline #[cfg(test)] modules live in src/ and cannot be protected by path. Only tests/ is tamper-checked; prefer tests/ for acceptance tests."
+}

@@ -1,0 +1,47 @@
+{
+  "name": "python",
+  "detect": [
+    "pyproject.toml",
+    "setup.py",
+    "setup.cfg",
+    "requirements.txt"
+  ],
+  "build_cmd": "true",
+  "test_cmd": "{py_run}pytest -q",
+  "test_path_patterns": [
+    "(^|/)tests?/",
+    "(^|/)test_[^/]*\\.py$",
+    "_test\\.py$",
+    "(^|/)conftest\\.py$"
+  ],
+  "banned_commands": [
+    {
+      "pattern": "\\balembic\\s+(upgrade|downgrade|stamp)\\b",
+      "reason": "never apply migrations to a database"
+    },
+    {
+      "pattern": "\\bmanage\\.py\\s+(migrate|flush|loaddata)\\b",
+      "reason": "never apply migrations to a database"
+    },
+    {
+      "pattern": "\\b(twine|uv\\s+publish|poetry\\s+publish)\\b",
+      "reason": "never publish"
+    }
+  ],
+  "allow": [
+    "Bash({py_run}pytest)",
+    "Bash({py_run}pytest *)",
+    "Bash({py} -m pytest *)",
+    "Bash({py_run}mypy *)",
+    "Bash({py_run}ruff check *)",
+    "Bash({py_run}alembic revision *)",
+    "Bash({py} manage.py makemigrations *)"
+  ],
+  "deny": [
+    "Bash(alembic upgrade *)",
+    "Bash({py_run}alembic upgrade *)",
+    "Bash({py} manage.py migrate*)"
+  ],
+  "env": {},
+  "migration_hint": "Generate migrations only (alembic revision --autogenerate / manage.py makemigrations). Never upgrade/migrate."
+}

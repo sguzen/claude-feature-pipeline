@@ -1,0 +1,12 @@
+{
+  "name": "generic",
+  "detect": [],
+  "build_cmd": "TODO: single command that builds/compiles",
+  "test_cmd": "TODO: single command that runs the full test suite and exits",
+  "test_path_patterns": ["(^|/)tests?/"],
+  "banned_commands": [],
+  "allow": [],
+  "deny": [],
+  "env": {},
+  "migration_hint": "Generate migration files only; never apply them."
+}
