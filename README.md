@@ -79,6 +79,9 @@ Morning: `.pipeline/<slug>/SUMMARY.md` → `review-r*.md` → the diff. Every ru
 
 Add a stack by dropping a JSON file in `stacks/` with the same keys and adding it to `DETECT_ORDER` in `install.py`.
 
+## Output budgets
+Agents report back in one status line; files have length budgets. You read three things: the spec's `## TL;DR` and ACs during `/spec`, the ~18-line `SUMMARY.md` (first line: status, second line: what to do next), and the ~20-line review. Full detail stays in the run dir and the diff.
+
 ## Budgets
 `max_red_retries` (default 2): coder re-runs because the suite was red, one budget for the whole run. `max_fix_rounds` (default 2): review → fix cycles. Worst case the coder runs 1 + 2 + 2 = 5 times.
 

@@ -31,21 +31,20 @@ Your task gives you: the run directory, BASE (commit before the feature) and TES
 - **Security**: authorisation on every new entry point; input validation; no secrets committed; no personal data in logs or error messages.
 - **Project checklist**: every item in project.md's review checklist.
 
-## Output (final message, exactly this shape)
+## Output (final message, exactly this shape, max ~20 lines)
 ```
 VERDICT: SHIP | NEEDS_WORK | BLOCK
+ACs: <n>/<total> OK<; not OK: AC3 (why), AC5 (why) — omit if all OK> | tests untouched since TESTS_SHA: yes|no
+Suite: build ok, <passed>/<total> green | red: <one line>
 
-## AC coverage
-| AC | Implemented at | Tested by | OK |
+[MUST] path:line — problem → fix
+[SHOULD] path:line — problem → fix
 
-## Findings
-- [MUST] path:line — problem — concrete fix
-- [SHOULD] ...
-- [NIT] ...
-
-## For the human
-<2-5 lines: what to look at when reviewing, residual risk.>
+Human:
+1. <max 4 numbered items, one line each: deploy steps, pre-existing bugs found, contract changes, residual risk>
 ```
+- One line per finding (under ~200 characters). Max 10 findings, MUST first. No NITs, no style nits.
+- No preamble, no AC table, no list of things you checked that were fine, no restating the spec, no praise.
 
 ## Verdict rules
 - SHIP: suite green, no MUST findings.

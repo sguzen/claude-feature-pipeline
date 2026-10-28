@@ -22,7 +22,7 @@ import sys
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(KIT, "template")
 STACKS = os.path.join(KIT, "stacks")
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 DETECT_ORDER = ["dotnet", "node", "go", "rust", "python"]
 
 # Kit-owned files: replaced on --update

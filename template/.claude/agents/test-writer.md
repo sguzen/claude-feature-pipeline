@@ -22,15 +22,16 @@ Inputs: `<run_dir>/spec.md` (given in your task) and `.claude/pipeline/project.m
 3. Write any special tests project.md requires for this kind of change.
 4. Write tests against the exact public interfaces in the spec. Do not create production code, stubs or interfaces; you can only write in test paths, and that is deliberate.
 5. Run the build and test commands from `.claude/pipeline.json`. Expected result: red (compile/import errors about missing symbols, or failing assertions). You may save output with `... 2>&1 | tail -60 > <run_dir>/tests-red.log`.
-6. Write `<run_dir>/tests.md`:
+6. Write `<run_dir>/tests.md`, nothing more than:
    - Table: AC | test name | file | unit/integration
-   - Red status: what fails and why (one line per group)
-   - Any test that already PASSES: flag it. Either the AC is already satisfied or the test is vacuous.
-   - Gaps: any AC you could not test properly and why.
+   - `Red:` one line (e.g. "compile errors: 3 missing types" or "9 assertions fail").
+   - `Already passing:` test names or "none". (A test that passes before any code exists means the AC is already met or the test is vacuous.)
+   - `Gaps:` one line per AC you could not test properly, or "none".
 
 ## Rules
 - Test behaviour through public interfaces: return values, persisted state, HTTP status/body, raised errors. Do not assert on mocks of the thing under test or on private details.
 - Never point tests at real databases, services or credentials. Use the project's existing test infrastructure only.
 - If the spec is contradictory or untestable, or the test paths it names are blocked, stop and explain under `## SPEC PROBLEM` in tests.md.
 - Change files only with Write/Edit. Do not run git; the orchestrator commits.
-- Final message: count of tests per AC, red status, gaps, any SPEC PROBLEM.
+- Final message: exactly one line, nothing else:
+  `tests: <n> for <k> ACs | red: yes|no | already passing: <n> | gaps: <n> | spec problem: none|<one line>`

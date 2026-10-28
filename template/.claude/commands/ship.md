@@ -13,6 +13,17 @@ Run every subagent in the foreground and wait for it to finish before the next s
 CHANGES means: `git status --porcelain -uall -- . ':!.pipeline'` (always with `-uall`, so new directories list every file, never a collapsed folder name).
 At any STOP: go to step 5. Never push, merge, rebase, or commit on the base branch.
 
+## Output rules (the human gets lost in long output)
+- Between steps print ONE line per finished stage, nothing else. Examples:
+  `✓ preflight  branch feat/x, baseline green`
+  `✓ plan       9 ACs, 0 questions`
+  `✓ tests      14 written, red as expected`
+  `✗ code       red (retry 1/2): 2 failing`
+  `✓ code       green 212/212`
+  `✗ review     NEEDS_WORK, 2 MUST → fix round 1`
+- Never paste agent reports, file contents, diffs, test output or logs into the conversation. They are in the run dir.
+- Don't announce what you are about to do; just do it.
+
 Counters (keep them in `<run_dir>/state.md`): review_round = 0 (review cycles), red_retries = 0 (coder re-runs because the suite was red; one budget for the whole run). Worst case the coder runs 1 + MAX_REVIEW + MAX_RED times.
 
 ## 0. Preflight
@@ -57,26 +68,17 @@ Counters (keep them in `<run_dir>/state.md`): review_round = 0 (review cycles), 
 
 ## 5. Summary and clean-up (always runs once a run dir exists)
 - If CHANGES is non-empty (a stop mid-stage): `git add -A -- . ':!.pipeline'` and `git commit -m "wip(<slug>): stopped at <STATUS>"`, so nothing is lost and the tree is clean.
-- Write `<run_dir>/SUMMARY.md`:
+- Write `<run_dir>/SUMMARY.md`, max ~18 lines, exactly this shape:
 ```
 # <slug> — <STATUS>
-Branch: <BRANCH>   Base: <BASE short> (<BASE_BRANCH>)   Review rounds: <review_round>   Red retries: <red_retries>
-Request: <one line>
+Next: <one line: the exact thing the human should do now>
 
-## Result
-<3-6 lines: what was built, or exactly where and why it stopped>
-
-## Commits
-<git log --oneline BASE..BRANCH>
-
-## Diffstat
-<git diff --stat BASE..BRANCH | tail -1>
-
-## Read first
-<the latest review file, then the 3-5 riskiest files from the diff>
-
-## Warnings
-<already-passing tests, gaps from tests.md, SHOULD findings left open>
+What: <max 3 lines: what was built, or where and why it stopped>
+Branch: <BRANCH> from <BASE_BRANCH> | <n> commits | <files> files, +<ins> -<del> | review rounds <r>, red retries <t>
+Read: <latest review file>, then <max 3 riskiest files>
+Warnings:
+- <max 5, one line each, most consequential first. Always include deploy/migration steps and pre-existing bugs found. Or "none".>
 ```
+  Next examples: "Review the diff on feat/x and merge." / "Answer 2 open questions: run /spec <slug>." / "Read review-r2.md: 1 MUST left (tenant check in ReportService)."
 - `git switch <BASE_BRANCH>`, so the working copy is back where the human left it and the next run can start. The feature branch is untouched.
-- Print SUMMARY.md as your final message.
+- Print SUMMARY.md as your final message, with nothing before or after it.

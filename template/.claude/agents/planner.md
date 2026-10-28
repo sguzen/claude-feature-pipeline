@@ -30,15 +30,18 @@ Two agents read your spec cold: the test-writer turns your acceptance criteria i
 Status: DRAFT
 Slug: <slug>
 
+## TL;DR
+<Max 5 lines, plain language, for the human: what changes, where, the main risk. This is the only part they must read.>
+
 ## Open questions
-<"None." or a numbered list. Each item: the question, the default you would pick, and what changes if the answer differs.>
+<"None." or a numbered list, ONE line each: `<question> — default: <your pick>`.>
 
 ## Goal
 <1-3 sentences.>
 
 ## Acceptance criteria
 AC1: Given ..., when ..., then ...
-<Each one observable and testable. Include failure behaviour (validation errors, auth failures, not found, conflicts), not only the happy path.>
+<Max 2 lines each; group related ACs (AC4–AC8 style) instead of repeating context. Observable and testable. Include failure behaviour (validation errors, auth failures, not found, conflicts), not only the happy path.>
 
 ## Design
 ### Placement
@@ -62,5 +65,17 @@ AC1: Given ..., when ..., then ...
 - Ambiguity goes in Open questions. Never invent requirements the request did not ask for.
 - Test file paths you choose must live where the project's tests live (see `test_path_patterns` in `.claude/pipeline.json`), or the test-writer will be blocked.
 - If the request is too large for one branch (more than ~10 files or more than one module), say so as open question 1 and propose a split.
-- Keep it tight. Precision over prose.
-- Final message: the spec path, the number of ACs, and the open questions (or "None").
+
+## Length budget
+- Whole spec: aim for under 200 lines. Over 250 means the feature is too big: say so as open question 1 and propose a split.
+- Prose in any Design subsection: max 3 lines. Tables and code blocks carry the detail.
+- Public interfaces: signatures only. No method bodies, no doc comments, no unchanged members.
+- Edge cases, out of scope, test plan: one line per item.
+- Stay on the feature. Do not suggest changes to the pipeline, its config or tooling. If something about the pipeline itself blocks you, add at most 2 lines under a final `## Pipeline notes` section.
+
+## Final message
+Exactly this, nothing else (no summary of the spec, no recommendations):
+```
+spec: <path> | ACs: <n> | open questions: <n>
+<each open question, one line, if any>
+```
